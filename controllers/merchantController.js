@@ -10,7 +10,8 @@ const createMerchantProfile = async (req, res) => {
       bg_img,
       products,
       stores,
-      commercial_number
+      commercial_number,
+      national_number
     } = req.body;
 
     const userId = req.user.userId;
@@ -47,6 +48,7 @@ const createMerchantProfile = async (req, res) => {
         pfp_img,
         bg_img,
         commercial_number,
+        national_number,
         products: products || [],
         stores: stores || [],
         country,

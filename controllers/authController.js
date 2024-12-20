@@ -3,7 +3,7 @@ const supabase = require('../config/supabase');
 
 const register = async (req, res) => {
   try {
-    const { email, password, fullName, userType, pfpImg, bgImg, status } = req.body;
+    const { email, password, fullName, userType, pfpImg, bgImg, status, theme } = req.body;
 
     const validUserTypes = ['customer', 'merchant', 'admin'];
     if (!validUserTypes.includes(userType)) {
@@ -32,7 +32,8 @@ const register = async (req, res) => {
           user_type: userType,
           status: status || 'Active',
           pfp_img: pfpImg,
-          bg_img: bgImg
+          bg_img: bgImg,
+          theme: theme
         }
       ])
       .select()
@@ -68,7 +69,8 @@ const register = async (req, res) => {
         userType: userType,
         status: userDetails.status,
         pfpImg: pfpImg,
-        bgImg: bgImg
+        bgImg: bgImg,
+        theme: theme
       }
     });
   } catch (error) {
@@ -126,7 +128,7 @@ const login = async (req, res) => {
 
     const { data: userDetails, error: userDetailsError } = await supabase
       .from('users')
-      .select('status, user_type, full_name')
+      .select('status, user_type, full_name, theme')
       .eq('id', userId)
       .single();
 
@@ -137,7 +139,8 @@ const login = async (req, res) => {
         email: authData.user.email,
         fullName: authData.user.user_metadata.full_name,
         userType: authData.user.user_metadata.user_type,
-        status: userDetails.status
+        status: userDetails.status,
+        theme: userDetails.theme
       },
     });
   } catch (error) {
