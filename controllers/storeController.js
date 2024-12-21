@@ -6,8 +6,24 @@ const createStore = async (req, res) => {
     const { name, location, products, store_logo, store_bg, images, categories, reg_number } = req.body;
     const merchantId = req.user.userId;
 
+    const { data: merchantInfo, error: merchantInfoError } = await supabase
+      .from('merchants')
+      .select('full_name, pfp_img')
+      .eq('id', merchantId)
+      .single();
+
+    if (merchantInfoError) {
+      console.error('Error fetching merchant info:', merchantInfoError);
+      return res.status(500).json({ error: 'Error fetching merchant data' });
+    }
+
     const storeData = {
       merchant_id: merchantId,
+      merchant: [{
+        id: merchantId,
+        full_name: merchantInfo.full_name,
+        pfp_img: merchantInfo.pfp_img
+      }],
       name,
       location,
       products,
@@ -19,7 +35,6 @@ const createStore = async (req, res) => {
       status: 'Under review'
     };
 
-
     const { data: store, error: storeError } = await supabase
       .from('stores')
       .insert([storeData])
@@ -27,7 +42,6 @@ const createStore = async (req, res) => {
       .single();
 
     if (storeError) throw storeError;
-
 
     const { data: merchantData, error: merchantFetchError } = await supabase
       .from('merchants')
