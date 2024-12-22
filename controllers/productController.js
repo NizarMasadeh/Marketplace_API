@@ -1,5 +1,11 @@
 const supabase = require('../config/supabase');
 
+let io;
+
+const setSocketInstance = (socketInstance) => {
+  io = socketInstance;
+};
+
 const createProduct = async (req, res) => {
   try {
     const {
@@ -25,7 +31,6 @@ const createProduct = async (req, res) => {
     } = req.body;
     const merchantId = req.user.userId;
 
-    // Base product data
     const productData = {
       merchant_id: merchantId,
       title,
@@ -48,7 +53,6 @@ const createProduct = async (req, res) => {
       related_products,
     };
 
-    // Get the current table columns
     const { data: columnData, error: columnsError } = await supabase
       .rpc('get_products_columns');
 
@@ -57,7 +61,6 @@ const createProduct = async (req, res) => {
       return res.status(500).json({ error: 'Error fetching table columns' });
     }
 
-    // Function to add a new column
     const addColumn = async (columnName, columnType) => {
       const { error: alterError } = await supabase.rpc('add_column_to_products', {
         column_name: columnName,
@@ -71,7 +74,6 @@ const createProduct = async (req, res) => {
       return true;
     };
 
-    // Check and add any new columns dynamically
     for (const [key, value] of Object.entries(customFields)) {
       if (!columnData.includes(key)) {
         let columnType = typeof value === 'number' ? 'numeric' : 'text';
@@ -84,7 +86,6 @@ const createProduct = async (req, res) => {
       }
     }
 
-    // Insert the product
     const { data: product, error: productError } = await supabase
       .from('products')
       .insert([productData])
@@ -93,7 +94,6 @@ const createProduct = async (req, res) => {
 
     if (productError) throw productError;
 
-    // Fetch the merchant's current products
     const { data: merchantData, error: merchantFetchError } = await supabase
       .from('merchants')
       .select('products')
@@ -105,21 +105,27 @@ const createProduct = async (req, res) => {
       return res.status(500).json({ error: 'Error updating merchant data' });
     }
 
-    // Prepare the updated products array
+    
     const updatedProducts = merchantData.products || [];
     updatedProducts.push({ id: product.id });
-
-    // Update the merchant's products
+    
     const { error: merchantUpdateError } = await supabase
-      .from('merchants')
-      .update({ products: updatedProducts })
-      .eq('id', merchantId);
-
+    .from('merchants')
+    .update({ products: updatedProducts })
+    .eq('id', merchantId);
+    
     if (merchantUpdateError) {
       console.error('Error updating merchant products:', merchantUpdateError);
       return res.status(500).json({ error: 'Error updating merchant data' });
     }
+    
+    const { count: productCount, error: countError } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true });
 
+    if (io) {
+      io.emit('productCreated', { product, productCount});
+    }
     res.status(201).json(product);
   } catch (error) {
     console.error('Error creating product:', error);
@@ -219,5 +225,6 @@ const getProductsByMerchant = async (req, res) => {
 module.exports = {
   createProduct,
   getProducts,
-  getProductsByMerchant
+  getProductsByMerchant,
+  setSocketInstance
 };

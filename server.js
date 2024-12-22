@@ -1,4 +1,5 @@
 const express = require('express');
+const app = express();
 const cors = require('cors');
 const helmet = require('helmet');
 const fileUpload = require('express-fileupload');
@@ -10,13 +11,33 @@ const imageRoutes = require('./routes/images');
 const dataRoutes = require('./routes/data');
 const merchantRoutes = require('./routes/merchant');
 const ipLocationRoutes = require('./routes/ipLocation');
+const { setSocketInstance } = require('./controllers/productController')
+const { setMerchantSocket } = require('./controllers/merchantController')
+
 require('dotenv').config();
 
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log('Connected socket: ', socket.id);
+  socket.emit('connection', { message: 'Welcome to the server!' });
+})
+
+setSocketInstance(io);
+setMerchantSocket(io);
 
 delete require.cache[require.resolve('./routes/merchant')];
 delete require.cache[require.resolve('./controllers/merchantController')];
 
-const app = express();
 
 
 app.use(cors());
@@ -34,6 +55,6 @@ app.use('/api/merchants', merchantRoutes);
 app.use('/api/ipLocation', ipLocationRoutes)
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -1,5 +1,11 @@
 const supabase = require('../config/supabase');
 
+let io;
+
+const setMerchantSocket = (merchantSocket) => {
+  io = merchantSocket;
+};
+
 const createMerchantProfile = async (req, res) => {
   try {
     const {
@@ -184,6 +190,11 @@ const updateMerchantProfile = async (req, res) => {
       message: 'Merchant profile updated successfully',
       merchant: data
     });
+
+    if(io) {
+      io.emit('merchantUpdated', data)
+    }
+
   } catch (error) {
     console.error('Merchant profile update error:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
@@ -219,5 +230,6 @@ module.exports = {
   getMerchantProfile,
   getAllMerchants,
   updateMerchantProfile,
-  deleteMerchantProfile
+  deleteMerchantProfile,
+  setMerchantSocket
 };
