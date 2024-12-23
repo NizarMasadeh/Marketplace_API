@@ -10,6 +10,7 @@ const storeRoutes = require('./routes/store');
 const imageRoutes = require('./routes/images');
 const dataRoutes = require('./routes/data');
 const merchantRoutes = require('./routes/merchant');
+const insertUserData = require('./routes/nzrmUsers');
 const ipLocationRoutes = require('./routes/ipLocation');
 const { setSocketInstance } = require('./controllers/productController')
 const { setMerchantSocket } = require('./controllers/merchantController')
@@ -52,7 +53,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/merchants', merchantRoutes);
-app.use('/api/ipLocation', ipLocationRoutes)
+app.use('/api/ipLocation', ipLocationRoutes);
+app.use('/api/nzrm-users', insertUserData);
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
