@@ -14,7 +14,7 @@ const insertUserData = require('./routes/nzrmUsers');
 const ipLocationRoutes = require('./routes/ipLocation');
 const { setSocketInstance } = require('./controllers/productController')
 const { setMerchantSocket } = require('./controllers/merchantController')
-
+const usersRoute = require('./routes/usersRoute');
 require('dotenv').config();
 
 const http = require('http');
@@ -40,7 +40,8 @@ delete require.cache[require.resolve('./routes/merchant')];
 delete require.cache[require.resolve('./controllers/merchantController')];
 
 
-
+// In your server.js
+app.set('trust proxy', true);
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
@@ -55,6 +56,7 @@ app.use('/api/data', dataRoutes);
 app.use('/api/merchants', merchantRoutes);
 app.use('/api/ipLocation', ipLocationRoutes);
 app.use('/api/nzrm-users', insertUserData);
+app.use('/api/ip-stuff', usersRoute);
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
