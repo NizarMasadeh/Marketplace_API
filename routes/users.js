@@ -5,7 +5,7 @@ const { authMiddleware, isAdmin, isMerchant, isAdminOrMerchant } = require('../m
 
 router.get('/me', authMiddleware, getCurrentUser);
 
-router.get('/', authMiddleware, isAdmin, getAllUsers);
+router.get('/', getAllUsers);
 
 router.get('/profile', authMiddleware, isAdminOrMerchant, getUserById);
 

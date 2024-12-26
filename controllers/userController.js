@@ -18,22 +18,29 @@ const getCurrentUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, userType } = req.query;
     const offset = (page - 1) * limit;
 
-    console.log('Page:', page, 'Limit:', limit, 'Offset:', offset);
+    // Remove quotes if they exist
+    const cleanUserType = userType ? userType.replace(/^"(.*)"$/, '$1') : null;
 
-    const query = supabase
+    console.log('Page:', page, 'Limit:', limit, 'Offset:', offset, 'UserType:', cleanUserType);
+
+    let query = supabase
       .from('users')
       .select('id, email, full_name, user_type, status', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order('created_at', { ascending: false });
+
+    // Add userType filter if provided
+    if (cleanUserType) {
+      query = query.eq('user_type', cleanUserType);
+    }
+
+    query = query.range(offset, offset + limit - 1);
 
     const { data: users, count, error } = await query;
 
     if (error) throw error;
-
-    console.log('Fetched users:', users);
 
     res.json({
       pagination: {
@@ -44,6 +51,7 @@ const getAllUsers = async (req, res) => {
       users,
     });
   } catch (error) {
+    console.error('Error fetching users:', error);
     res.status(500).json({ error: error.message });
   }
 };
