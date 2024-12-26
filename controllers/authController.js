@@ -5,7 +5,7 @@ const register = async (req, res) => {
   try {
     const { email, password, fullName, userType, pfpImg, bgImg, status, theme } = req.body;
 
-    const validUserTypes = ['customer', 'merchant', 'admin'];
+    const validUserTypes = ['customer', 'merchant', 'admin', 'Chat User'];
     if (!validUserTypes.includes(userType)) {
       return res.status(400).json({ error: 'Invalid user type' });
     }
