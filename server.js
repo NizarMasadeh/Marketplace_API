@@ -15,6 +15,8 @@ const ipLocationRoutes = require('./routes/ipLocation');
 const { setSocketInstance } = require('./controllers/productController')
 const { setMerchantSocket } = require('./controllers/merchantController')
 const usersRoute = require('./routes/usersRoute');
+const lamoorRoutes = require('./routes/nzd-routes/lamoor');
+const { setLamoorSocket } = require('./controllers/nzd-lamoor/lamoorController');
 require('dotenv').config();
 
 const http = require('http');
@@ -32,9 +34,10 @@ io.on("connection", (socket) => {
   console.log('Connected socket: ', socket.id);
   socket.emit('connection', { message: 'Welcome to the server!' });
 })
-
 setSocketInstance(io);
 setMerchantSocket(io);
+setLamoorSocket(io);
+
 
 delete require.cache[require.resolve('./routes/merchant')];
 delete require.cache[require.resolve('./controllers/merchantController')];
@@ -57,6 +60,8 @@ app.use('/api/merchants', merchantRoutes);
 app.use('/api/ipLocation', ipLocationRoutes);
 app.use('/api/nzrm-users', insertUserData);
 app.use('/api/ip-stuff', usersRoute);
+
+app.use('/api/lamoor', lamoorRoutes);
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
