@@ -28,7 +28,7 @@ const getAllUsers = async (req, res) => {
 
     let query = supabase
       .from('users')
-      .select('id, email, full_name, user_type, status', { count: 'exact' })
+      .select('id, email, full_name, user_type, status, pfp_img', { count: 'exact' })
       .order('created_at', { ascending: false });
 
     // Add userType filter if provided
