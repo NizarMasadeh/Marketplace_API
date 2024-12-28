@@ -18,7 +18,7 @@ const usersRoute = require('./routes/usersRoute');
 const lamoorRoutes = require('./routes/nzd-routes/lamoor');
 // const { setLamoorSocket } = require('./controllers/nzd-lamoor/lamoorController');
 require('dotenv').config();
-
+const Pusher = require('pusher');
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -38,7 +38,20 @@ setSocketInstance(io);
 setMerchantSocket(io);
 // setLamoorSocket(io);
 
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APPID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true
+});
 
+pusher.trigger('my-channel', 'my-event', { message: 'hello world' })
+  .catch(error => {
+    console.error('Pusher Error:', error);
+  });
+  
+  
 delete require.cache[require.resolve('./routes/merchant')];
 delete require.cache[require.resolve('./controllers/merchantController')];
 
