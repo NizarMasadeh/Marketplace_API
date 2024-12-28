@@ -1,10 +1,15 @@
 const supabase = require('../../config/supabase');
 
-let io;
 
-const setLamoorSocket = (lamoorSocket) => {
-    io = lamoorSocket;
-};
+const Pusher = require('pusher');
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APPID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true
+});
 
 const getMessages = async (req, res) => {
     try {
@@ -65,10 +70,7 @@ const createMessage = async (req, res) => {
 
         if (messageError) throw messageError;
 
-        // Emit socket event if socket.io is configured
-        if (io) {
-            io.emit('lamoorMessage', newMessage)
-        }
+        await pusher.trigger('lamoor-channel', 'new-message', newMessage);
 
         res.status(201).json(newMessage);
     } catch (error) {
@@ -162,7 +164,6 @@ const getConversation = async (req, res) => {
 };
 
 module.exports = {
-    setLamoorSocket,
     getMessages,
     createMessage,
     updateMessage,
