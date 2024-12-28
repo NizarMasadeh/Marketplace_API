@@ -1,9 +1,8 @@
 const express = require('express');
+const app = express();
 const cors = require('cors');
 const helmet = require('helmet');
 const fileUpload = require('express-fileupload');
-require('dotenv').config();
-
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
@@ -13,32 +12,43 @@ const dataRoutes = require('./routes/data');
 const merchantRoutes = require('./routes/merchant');
 const insertUserData = require('./routes/nzrmUsers');
 const ipLocationRoutes = require('./routes/ipLocation');
+const { setSocketInstance } = require('./controllers/productController')
+const { setMerchantSocket } = require('./controllers/merchantController')
 const usersRoute = require('./routes/usersRoute');
 const lamoorRoutes = require('./routes/nzd-routes/lamoor');
-const Pusher = require('pusher');
-const app = express();
+// const { setLamoorSocket } = require('./controllers/nzd-lamoor/lamoorController');
+require('dotenv').config();
 
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log('Connected socket: ', socket.id);
+  socket.emit('connection', { message: 'Welcome to the server!' });
+})
+setSocketInstance(io);
+setMerchantSocket(io);
+// setLamoorSocket(io);
+
+
+delete require.cache[require.resolve('./routes/merchant')];
+delete require.cache[require.resolve('./controllers/merchantController')];
+
+
+// In your server.js
+app.set('trust proxy', true);
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use(fileUpload());
-
-
-
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APPID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
-  useTLS: true
-});
-
-pusher.trigger('my-channel', 'my-event', { message: 'hello world' })
-  .catch(error => {
-    console.error('Pusher Error:', error);
-  });
-  
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -50,21 +60,10 @@ app.use('/api/merchants', merchantRoutes);
 app.use('/api/ipLocation', ipLocationRoutes);
 app.use('/api/nzrm-users', insertUserData);
 app.use('/api/ip-stuff', usersRoute);
+
 app.use('/api/lamoor', lamoorRoutes);
+const PORT = process.env.PORT || 3000;
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-module.exports = app;
-
