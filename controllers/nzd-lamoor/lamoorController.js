@@ -2,8 +2,8 @@ const supabase = require('../../config/supabase');
 
 let io;
 
-const setLamoorSocket = (socketInstance) => {
-    io = socketInstance;
+const setLamoorSocket = (lamoorSocket) => {
+    io = lamoorSocket;
 };
 
 const getMessages = async (req, res) => {
