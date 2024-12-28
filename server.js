@@ -56,16 +56,8 @@ delete require.cache[require.resolve('./controllers/merchantController')];
 
 // In your server.js
 app.set('trust proxy', true);
-app.use(cors({
-  origin: ['http://localhost:4200', 'https://api.nzrm.dev'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
-
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-}));
+app.use(cors());
+app.use(helmet());
 app.use(express.json());
 app.use(fileUpload());
 
